@@ -59,7 +59,7 @@ def wrap_callback(callback, data_type, nested_response: List[str] = None):
     def wrapper(response):
 
         if not data_type:
-            return callback(True)
+            return callback(response['body']['data'])
 
         deserialized_data = deserialize(response=response, data_type=data_type, nested_response=nested_response)
         return callback(deserialized_data)
