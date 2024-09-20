@@ -1,7 +1,7 @@
 from venmo_api import ApiClient, Payment, ArgumentMissingError, AlreadyRemindedPaymentError, \
     NoPendingPaymentToUpdateError, NoPaymentMethodFoundError, NotEnoughBalanceError, GeneralPaymentError, \
     User, PaymentMethod, PaymentRole, PaymentPrivacy, deserialize, wrap_callback, get_user_id
-from typing import List, Union
+from typing import Any, List, Union
 
 
 class PaymentApi(object):
@@ -107,7 +107,7 @@ class PaymentApi(object):
                    funding_source_id: str = None,
                    target_user: User = None,
                    privacy_setting: PaymentPrivacy = PaymentPrivacy.PRIVATE,
-                   callback=None) -> Union[bool, None]:
+                   callback=None) -> Union[dict[str, Any], None]:
         """
         send [amount] money with [note] to the ([target_user_id] or [target_user]) from the [funding_source_id]
         If no [funding_source_id] is provided, it will find the default source_id and uses that.
@@ -118,7 +118,7 @@ class PaymentApi(object):
         :param target_user_id: <str>
         :param target_user: <User>
         :param callback: <function> Passing callback will run it in a distinct thread, and returns Thread
-        :return: <bool> Either the transaction was successful or an exception will rise.
+        :return: <dict[str, Any]> Data response dictionary of the transaction or an exception will rise.
         """
 
         return self.__send_or_request_money(amount=amount,
@@ -135,7 +135,7 @@ class PaymentApi(object):
                       target_user_id: int = None,
                       privacy_setting: PaymentPrivacy = PaymentPrivacy.PRIVATE,
                       target_user: User = None,
-                      callback=None) -> Union[bool, None]:
+                      callback=None) -> Union[dict[str, Any], None]:
         """
         Request [amount] money with [note] from the ([target_user_id] or [target_user])
         :param amount: <float> amount of money to be requested
@@ -144,7 +144,7 @@ class PaymentApi(object):
         :param target_user_id: <str> the user id of the person you are asking the money from
         :param target_user: <User> The user object or user_id is required
         :param callback: callback function
-        :return: <bool> Either the transaction was successful or an exception will rise.
+        :return: <dict[str, Any]> Data response dictionary of the transaction or an exception will rise.
         """
         return self.__send_or_request_money(amount=amount,
                                             note=note,
@@ -198,7 +198,7 @@ class PaymentApi(object):
                                 funding_source_id: str = None,
                                 privacy_setting: str = PaymentPrivacy.PRIVATE.value,
                                 target_user_id: int = None, target_user: User = None,
-                                callback=None) -> Union[bool, None]:
+                                callback=None) -> Union[dict[str, Any], None]:
         """
         Generic method for sending and requesting money
         :param amount:
@@ -250,7 +250,7 @@ class PaymentApi(object):
         if callback:
             return
         # if no exception raises, then it was successful
-        return True
+        return result['body']['data']
 
     def get_default_payment_method(self) -> PaymentMethod:
         """
