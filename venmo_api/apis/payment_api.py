@@ -17,26 +17,48 @@ class PaymentApi(object):
             "not_enough_balance_error": 13006
         }
 
-    def get_charge_payments(self, limit=100000, callback=None):
+    def get_charge_payments(self, actor=None, status=None, limit=100000, after=None, before=None, callback=None):
         """
         Get a list of charge ongoing payments (pending request money)
-        :param limit:
+        :param actor: <str> Filter for only transactions initiated by this user
+                            You may provide multiple values, separated by commas
+        :param status: <str> Filter for only transactions matching this status
+                                You may provide multiple values, separated by commas
+                                Possible values are 'settled', 'pending', 'failed', 'expired' and 'cancelled'
+        :param limit: <int> Set the maximum number of transactions to return
+        :param after: <datetime> Return only transactions made after this date, example: YYYY-MM-DDTHH:MM:SS
+        :param before: <datetime> Return only transactions made before this date, example: YYYY-MM-DDTHH:MM:SS
         :param callback:
         :return:
         """
         return self.__get_payments(action="charge",
+                                   actor=actor,
+                                   status=status,
                                    limit=limit,
+                                   after=after,
+                                   before=before,
                                    callback=callback)
 
-    def get_pay_payments(self, limit=100000, callback=None):
+    def get_pay_payments(self, actor=None, status=None, limit=100000, after=None, before=None, callback=None):
         """
-        Get a list of pay ongoing payments (pending requested money from your profile)
-        :param limit:
+        Get a list of pay ongoing payments (pending requested money from a profile)
+        :param actor: <str> Filter for only transactions initiated by this user
+                            You may provide multiple values, separated by commas
+        :param status: <str> Filter for only transactions matching this status
+                                You may provide multiple values, separated by commas
+                                Possible values are 'settled', 'pending', 'failed', 'expired' and 'cancelled'
+        :param limit: <int> Set the maximum number of transactions to return
+        :param after: <datetime> Return only transactions made after this date, example: YYYY-MM-DDTHH:MM:SS
+        :param before: <datetime> Return only transactions made before this date, example: YYYY-MM-DDTHH:MM:SS
         :param callback:
         :return:
         """
         return self.__get_payments(action="pay",
+                                   actor=actor,
+                                   status=status,
                                    limit=limit,
+                                   after=after,
+                                   before=before,
                                    callback=callback)
 
     def remind_payment(self, payment: Payment = None, payment_id: int = None) -> bool:
@@ -169,9 +191,17 @@ class PaymentApi(object):
                                           method='PUT',
                                           ok_error_codes=list(self.__payment_error_codes.values())[:-1])
 
-    def __get_payments(self, action, limit, callback=None):
+    def __get_payments(self, action, actor=None, status=None, limit=None, after=None, before=None, callback=None):
         """
         Get a list of ongoing payments with the given action
+        :param actor: <str> Filter for only transactions initiated by this user
+                            You may provide multiple values, separated by commas
+        :param status: <str> Filter for only transactions matching this status
+                                You may provide multiple values, separated by commas
+                                Possible values are 'settled', 'pending', 'failed', 'expired' and 'cancelled'
+        :param limit: <int> Set the maximum number of transactions to return
+        :param after: <datetime> Return only transactions made after this date, example: YYYY-MM-DDTHH:MM:SS
+        :param before: <datetime> Return only transactions made before this date, example: YYYY-MM-DDTHH:MM:SS
         :return:
         """
         wrapped_callback = wrap_callback(callback=callback,
@@ -180,9 +210,20 @@ class PaymentApi(object):
         resource_path = '/payments'
         parameters = {
             "action": action,
-            "actor": self.__profile.id,
-            "limit": limit
         }
+
+        if actor:
+            parameters['actor'] = actor
+
+        if limit:
+            parameters['limit'] = limit
+
+        if after:
+            parameters['after'] = after
+
+        if before:
+            parameters['before'] = before
+
         response = self.__api_client.call_api(resource_path=resource_path,
                                               params=parameters,
                                               method='GET',
